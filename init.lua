@@ -120,6 +120,9 @@ end)
 
 -- Enable break indent
 vim.o.breakindent = true
+vim.o.wrap = true
+vim.o.linebreak = true
+vim.o.textwidth = 80
 
 -- Save undo history
 vim.o.undofile = true
@@ -774,6 +777,7 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
+        markdown = { 'prettier' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
