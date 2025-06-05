@@ -693,6 +693,16 @@ require('lazy').setup({
         -- ts_ls = {},
         --
 
+        ts_ls = {},
+        jdtls = {
+          Settings = {
+            java = {
+              project = {
+                sourcePaths = { 'src' },
+              },
+            },
+          },
+        },
         lua_ls = {
           -- cmd = { ... },
           -- filetypes = { ... },
@@ -778,6 +788,8 @@ require('lazy').setup({
       formatters_by_ft = {
         lua = { 'stylua' },
         markdown = { 'prettier' },
+        typescript = { 'prettier' },
+        javascript = { 'prettier' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
