@@ -5,6 +5,7 @@
 
 vim.g.netrw_liststyle = 3
 return {
+  require 'custom.plugins.opencode',
   require 'custom.plugins.vim-tmux-navigator',
   require 'custom.plugins.netrw',
 }
