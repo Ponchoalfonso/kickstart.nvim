@@ -182,19 +182,73 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Diagnostic Config & Keymaps
 -- See :help vim.diagnostic.Opts
+local diagnostic_icons = vim.g.have_nerd_font
+    and {
+      [vim.diagnostic.severity.ERROR] = ' ',
+      [vim.diagnostic.severity.WARN] = ' ',
+      [vim.diagnostic.severity.INFO] = ' ',
+      [vim.diagnostic.severity.HINT] = '󰌵 ',
+    }
+  or {
+    [vim.diagnostic.severity.ERROR] = 'E ',
+    [vim.diagnostic.severity.WARN] = 'W ',
+    [vim.diagnostic.severity.INFO] = 'I ',
+    [vim.diagnostic.severity.HINT] = 'H ',
+  }
+
 vim.diagnostic.config {
   update_in_insert = false,
   severity_sort = true,
   float = { border = 'rounded', source = 'if_many' },
-  underline = { severity = { min = vim.diagnostic.severity.WARN } },
+  underline = true,
+  signs = {
+    text = diagnostic_icons,
+  },
 
   -- Can switch between these as you prefer
-  virtual_text = true, -- Text shows up at the end of the line
+  virtual_text = {
+    prefix = '■',
+    spacing = 1,
+  }, -- Text shows up at the end of the line
   virtual_lines = false, -- Text shows up underneath the line, with virtual lines
 
   -- Auto open the float, so you can easily read the errors when jumping with `[d` and `]d`
   jump = { float = true },
 }
+
+local unnecessary_ns = vim.api.nvim_create_namespace 'kickstart-unnecessary'
+
+---@param diagnostic vim.Diagnostic
+local function is_unnecessary(diagnostic)
+  for _, tag in ipairs(diagnostic.tags or {}) do
+    if tag == 1 then return true end
+  end
+  return false
+end
+
+---@param bufnr integer
+local function highlight_unnecessary(bufnr)
+  if not vim.api.nvim_buf_is_valid(bufnr) then return end
+  vim.api.nvim_buf_clear_namespace(bufnr, unnecessary_ns, 0, -1)
+
+  for _, diagnostic in ipairs(vim.diagnostic.get(bufnr)) do
+    if is_unnecessary(diagnostic) then
+      local end_lnum = diagnostic.end_lnum or diagnostic.lnum
+      local end_col = diagnostic.end_col or (diagnostic.col + 1)
+
+      vim.api.nvim_buf_set_extmark(bufnr, unnecessary_ns, diagnostic.lnum, diagnostic.col, {
+        end_row = end_lnum,
+        end_col = end_col,
+        hl_group = 'DiagnosticUnnecessary',
+        priority = 120,
+      })
+    end
+  end
+end
+
+vim.api.nvim_create_autocmd('DiagnosticChanged', {
+  callback = function(args) highlight_unnecessary(args.buf) end,
+})
 
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
@@ -242,9 +296,7 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 vim.api.nvim_create_autocmd('VimEnter', {
   callback = function()
     local arg = vim.fn.argv(0)
-    if type(arg) ~= 'string' then
-      return
-    end
+    if type(arg) ~= 'string' then return end
 
     if arg and vim.fn.isdirectory(arg) == 1 then
       vim.cmd('cd ' .. arg)
@@ -644,6 +696,7 @@ require('lazy').setup({
               },
             },
           },
+        },
 
         stylua = {}, -- Used to format Lua code
 
@@ -785,9 +838,7 @@ require('lazy').setup({
           --    https://github.com/rafamadriz/friendly-snippets
           {
             'rafamadriz/friendly-snippets',
-            config = function()
-              require('luasnip.loaders.from_vscode').lazy_load()
-            end,
+            config = function() require('luasnip.loaders.from_vscode').lazy_load() end,
           },
         },
         opts = {},
@@ -869,6 +920,12 @@ require('lazy').setup({
         styles = {
           comments = { italic = false }, -- Disable italics in comments
         },
+        on_highlights = function(hl, c)
+          hl.DiagnosticUnnecessary = { fg = c.terminal_black, italic = true }
+          hl['@lsp.mod.unused'] = { fg = c.terminal_black, italic = true }
+          hl['@lsp.typemod.variable.unused'] = { fg = c.terminal_black, italic = true }
+          hl['@lsp.typemod.parameter.unused'] = { fg = c.terminal_black, italic = true }
+        end,
       }
 
       -- Load the colorscheme here.
@@ -933,7 +990,7 @@ require('lazy').setup({
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter-intro`
     config = function()
       -- ensure basic parser are installed
-      local parsers = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'qmljs' }
+      local parsers = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'qmljs', 'json', 'yaml' }
       require('nvim-treesitter').install(parsers)
 
       ---@param buf integer
