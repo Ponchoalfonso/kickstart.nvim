@@ -679,7 +679,7 @@ require('lazy').setup({
       local servers = {
         clangd = {},
         gopls = {},
-        -- pyright = {},
+        pyright = {},
         -- rust_analyzer = {},
         --
         -- Some languages (like typescript) have entire language plugins that can be useful:
@@ -752,6 +752,7 @@ require('lazy').setup({
         'prettier',
         'clang-format',
         'codelldb',
+        'ruff',
       })
 
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
@@ -807,6 +808,7 @@ require('lazy').setup({
         cpp = { 'clang-format' },
         h = { 'clang-format' },
         hpp = { 'clang-format' },
+        python = { 'ruff_organize_imports', 'ruff_format' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
