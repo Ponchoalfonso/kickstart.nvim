@@ -8,7 +8,8 @@ vim.g.netrw_liststyle = 3
 ---@module 'lazy'
 ---@type LazySpec
 return {
-  require 'custom.plugins.opencode',
+  require 'custom.plugins.snacks',
+  require 'custom.plugins.diffview',
   require 'custom.plugins.vim-tmux-navigator',
   require 'custom.plugins.netrw',
 }
